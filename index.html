@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Landwalk</title>
+</head>
+<body>
+    <header>
+        <h1>Landwalk</h1>
+    </header>
+    <main>
+        <section>
+            <form>
+                <fieldset>
+                    <legend>Search Box</legend>
+                    <label for="search">Search for a card</label>
+                    <input id="search" type="search">
+                    <button type="button" onclick="fetchData(searchbox.value, 1)">Search</button>
+                    <button type="button" onclick="clearCards()">Clear Cards</button>
+                </fieldset>
+            </form>
+        </section>
+        <section id="card-container" aria-hidden="false" aria-live="polite">
+            
+        </section>
+    </main>
+    <footer>
+        <p>Landwalk made by <a target="_blank" href="http://github.com/charlierw1">Charlie Wightman</a></p>
+    </footer>
+</body>
+<script>
+    const searchbox = document.getElementById("search");
+    const syntaxUrl = "https://api.scryfall.com/cards/search?q=";
+    const cardContainer = document.getElementById("card-container");
+    let nextPage = null;
+
+    function clearCards() {
+        cardContainer.setAttribute("aria-hidden", "true");
+        cardContainer.innerHTML = null;
+    }
+
+    function fetchData(query, type = 0) {
+        let url = null;
+
+        switch (type) {
+            case 0:
+                url = query;
+                break;
+            case 1:
+                url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`;
+                clearCards();
+                break;
+        }
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    alert(`Alert failed: error code ${response.status}`);
+                }
+                return response.json();
+                })
+            .then(data => {
+                searchbox.value = null;
+                data.data.forEach(card => {
+                    const newlink = document.createElement("a");
+                    newlink.href = card.scryfall_uri;
+                    newlink.target = "_blank"
+                    const newcard = document.createElement("img");
+                    if (card.image_uris) {
+                        newcard.src = card.image_uris.png;
+                    } else if (card.card_faces) {
+                        newcard.src = card.card_faces[0].image_uris.png;
+                    }
+                    newcard.alt = `Name: ${card.name}, Mana Cost ${card.mana_cost}, Type: ${card.type_line}, Set: ${card.set_name}, Oracle: ${card.oracle_text}, ${card.power && card.toughness ? `, P/T: ${card.power}/${card.toughness}` : ""}`;
+                    newcard.width = 200;
+                    newcard.height = 280;
+                    newcard.classList.add("card");
+                    cardContainer.appendChild(newlink);
+                    newlink.appendChild(newcard);
+                });
+                cardContainer.setAttribute("aria-hidden", false);
+                if (data.has_more === true) {
+                    const loadMore = document.createElement("button");
+                    loadMore.type = "button";
+                    loadMore.textContent = "Load More";
+                    loadMore.onclick = () => {
+                        fetchData(data.next_page);
+                        loadMore.remove();
+                    };
+                    document.getElementsByTagName("main")[0].appendChild(loadMore)
+                }
+            })
+            .catch(error => {
+              console.log(error);
+            });
+    }
+  </script>
+</html>
