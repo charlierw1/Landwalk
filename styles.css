@@ -43,4 +43,6 @@ a {
 .card {
     border-radius: 7%;
     margin: 1rem;
+    background-image: url(/images/card-back.webp);
+    background-size: cover;
 }
