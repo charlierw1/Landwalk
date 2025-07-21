@@ -30,10 +30,10 @@ fieldset {
 }
 
 #card-container {
+    justify-items: left;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-evenly;
-    justify-items: center;
+    justify-content: left;
 }
 
 a {

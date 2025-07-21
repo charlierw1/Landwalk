@@ -15,7 +15,7 @@
             <form>
                 <fieldset>
                     <legend>Search Box</legend>
-                    <label for="search">Search for a card</label>
+                    <label for="search">Search for a card (<a href="https://scryfall.com/docs/syntax" target="_blank">Scryfall Syntax</a>)</label>
                     <input id="search" type="search">
                     <button type="button" onclick="fetchData(searchbox.value, 1)">Search</button>
                     <button type="button" onclick="clearCards()">Clear Cards</button>
@@ -62,16 +62,15 @@
                 return response.json();
                 })
             .then(data => {
-                searchbox.value = null;
                 data.data.forEach(card => {
                     const newlink = document.createElement("a");
                     newlink.href = card.scryfall_uri;
                     newlink.target = "_blank"
                     const newcard = document.createElement("img");
                     if (card.image_uris) {
-                        newcard.src = card.image_uris.png;
+                        newcard.src = card.image_uris.normal;
                     } else if (card.card_faces) {
-                        newcard.src = card.card_faces[0].image_uris.png;
+                        newcard.src = card.card_faces[0].image_uris.normal;
                     }
                     newcard.alt = `Name: ${card.name}, Mana Cost ${card.mana_cost}, Type: ${card.type_line}, Set: ${card.set_name}, Oracle: ${card.oracle_text}, ${card.power && card.toughness ? `, P/T: ${card.power}/${card.toughness}` : ""}`;
                     newcard.width = 200;
