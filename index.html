@@ -29,12 +29,22 @@
     <footer>
         <p>Landwalk made by <a target="_blank" href="http://github.com/charlierw1">Charlie Wightman</a></p>
     </footer>
+    <!-- Enlarged Card Follower -->
+    <div id="card-enlarger" class="card-enlarger">
+        <img id="enlarger-card-image" src="" alt="">
+    </div>
 </body>
 <script>
     const searchbox = document.getElementById("search");
     const syntaxUrl = "https://api.scryfall.com/cards/search?q=";
     const cardContainer = document.getElementById("card-container");
+    const cardEnlarger = document.getElementById("card-enlarger");
+    const enlargerCardImage = document.getElementById("enlarger-card-image");
     let nextPage = null;
+    let isAltPressed = false;
+    let hoveredCard = null;
+    let mouseX = 0;
+    let mouseY = 0;
     
     function clearCards() {
         cardContainer.setAttribute("aria-hidden", "true");
@@ -76,6 +86,20 @@
                     newcard.width = 200;
                     newcard.height = 280;
                     newcard.classList.add("card");
+                    
+                    // Add enlarged card listeners
+                    newcard.addEventListener('mouseenter', function() {
+                        hoveredCard = this;
+                        if (isAltPressed) {
+                            showEnlargedCard(this);
+                        }
+                    });
+                    
+                    newcard.addEventListener('mouseleave', function() {
+                        hoveredCard = null;
+                        hideEnlargedCard();
+                    });
+                    
                     cardContainer.appendChild(newlink);
                     newlink.appendChild(newcard);
                 });
@@ -95,5 +119,51 @@
               console.log(error);
             });
     }
+    
+    function showEnlargedCard(cardImg) {
+        enlargerCardImage.src = cardImg.src;
+        enlargerCardImage.alt = cardImg.alt;
+        cardEnlarger.classList.add("active");
+    }
+    
+    function hideEnlargedCard() {
+        cardEnlarger.classList.remove("active");
+    }
+    
+    // Track mouse position
+    document.addEventListener('mousemove', function(e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        
+        if (cardEnlarger.classList.contains("active")) {
+            cardEnlarger.style.left = (mouseX + 15) + 'px';
+            cardEnlarger.style.top = (mouseY + 15) + 'px';
+        }
+    });
+    
+    // Keyboard event listeners for Alt key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Alt') {
+            isAltPressed = true;
+            if (hoveredCard) {
+                showEnlargedCard(hoveredCard);
+            }
+        }
+    });
+    
+    document.addEventListener('keyup', function(e) {
+        if (e.key === 'Alt') {
+            isAltPressed = false;
+            hideEnlargedCard();
+        }
+    });
+    
+    // Close enlarger on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideEnlargedCard();
+            isAltPressed = false;
+        }
+    });
   </script>
 </html>

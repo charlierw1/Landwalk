@@ -45,4 +45,30 @@ a {
     margin: 1rem;
     background-image: url(/images/card-back.webp);
     background-size: cover;
+    cursor: pointer;
+}
+
+.card:hover {
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+/* Enlarged Card Follower */
+.card-enlarger {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.card-enlarger.active {
+    display: block;
+}
+
+#enlarger-card-image {
+    width: 350px;
+    height: 490px;
+    border-radius: 7%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    display: block;
 }
