@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
     <title>Landwalk</title>
 </head>
 <body>
@@ -17,8 +18,8 @@
                     <legend>Search Box</legend>
                     <label for="search">Search for a card (<a href="https://scryfall.com/docs/syntax" target="_blank">Scryfall Syntax</a>)</label>
                     <input id="search" type="search">
-                    <button type="button" onclick="fetchData(searchbox.value, 1)">Search</button>
-                    <button type="button" onclick="clearCards()">Clear Cards</button>
+                    <button id="search-button" type="button">Search</button>
+                    <button id="clear-button" type="button">Clear Cards</button>
                 </fieldset>
             </form>
         </section>
@@ -34,136 +35,4 @@
         <img id="enlarger-card-image" src="" alt="">
     </div>
 </body>
-<script>
-    const searchbox = document.getElementById("search");
-    const syntaxUrl = "https://api.scryfall.com/cards/search?q=";
-    const cardContainer = document.getElementById("card-container");
-    const cardEnlarger = document.getElementById("card-enlarger");
-    const enlargerCardImage = document.getElementById("enlarger-card-image");
-    let nextPage = null;
-    let isAltPressed = false;
-    let hoveredCard = null;
-    let mouseX = 0;
-    let mouseY = 0;
-    
-    function clearCards() {
-        cardContainer.setAttribute("aria-hidden", "true");
-        cardContainer.innerHTML = null;
-    }
-
-    function fetchData(query, type = 0) {
-        let url = null;
-
-        switch (type) {
-            case 0:
-                url = query;
-                break;
-            case 1:
-                url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`;
-                clearCards();
-                break;
-        }
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    alert(`Alert failed: error code ${response.status}`);
-                }
-                return response.json();
-                })
-            .then(data => {
-                data.data.forEach(card => {
-                    const newlink = document.createElement("a");
-                    newlink.href = card.scryfall_uri;
-                    newlink.target = "_blank"
-                    const newcard = document.createElement("img");
-                    if (card.image_uris) {
-                        newcard.src = card.image_uris.normal;
-                    } else if (card.card_faces) {
-                        newcard.src = card.card_faces[0].image_uris.normal;
-                    }
-                    newcard.alt = `Name: ${card.name}, Mana Cost ${card.mana_cost}, Type: ${card.type_line}, Set: ${card.set_name}, Oracle: ${card.oracle_text}, ${card.power && card.toughness ? `, P/T: ${card.power}/${card.toughness}` : ""}`;
-                    newcard.width = 200;
-                    newcard.height = 280;
-                    newcard.classList.add("card");
-                    
-                    // Add enlarged card listeners
-                    newcard.addEventListener('mouseenter', function() {
-                        hoveredCard = this;
-                        if (isAltPressed) {
-                            showEnlargedCard(this);
-                        }
-                    });
-                    
-                    newcard.addEventListener('mouseleave', function() {
-                        hoveredCard = null;
-                        hideEnlargedCard();
-                    });
-                    
-                    cardContainer.appendChild(newlink);
-                    newlink.appendChild(newcard);
-                });
-                cardContainer.setAttribute("aria-hidden", false);
-                if (data.has_more === true) {
-                    const loadMore = document.createElement("button");
-                    loadMore.type = "button";
-                    loadMore.textContent = "Load More";
-                    loadMore.onclick = () => {
-                        fetchData(data.next_page);
-                        loadMore.remove();
-                    };
-                    document.getElementsByTagName("main")[0].appendChild(loadMore)
-                }
-            })
-            .catch(error => {
-              console.log(error);
-            });
-    }
-    
-    function showEnlargedCard(cardImg) {
-        enlargerCardImage.src = cardImg.src;
-        enlargerCardImage.alt = cardImg.alt;
-        cardEnlarger.classList.add("active");
-    }
-    
-    function hideEnlargedCard() {
-        cardEnlarger.classList.remove("active");
-    }
-    
-    // Track mouse position
-    document.addEventListener('mousemove', function(e) {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        
-        if (cardEnlarger.classList.contains("active")) {
-            cardEnlarger.style.left = (mouseX + 15) + 'px';
-            cardEnlarger.style.top = (mouseY + 15) + 'px';
-        }
-    });
-    
-    // Keyboard event listeners for Alt key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Alt') {
-            isAltPressed = true;
-            if (hoveredCard) {
-                showEnlargedCard(hoveredCard);
-            }
-        }
-    });
-    
-    document.addEventListener('keyup', function(e) {
-        if (e.key === 'Alt') {
-            isAltPressed = false;
-            hideEnlargedCard();
-        }
-    });
-    
-    // Close enlarger on Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            hideEnlargedCard();
-            isAltPressed = false;
-        }
-    });
-  </script>
 </html>
